@@ -1,9 +1,7 @@
 package com.himaja.blackrock.savings_api.controller;
 
-import com.himaja.blackrock.savings_api.model.Expense;
-import com.himaja.blackrock.savings_api.model.FilterRequest;
-import com.himaja.blackrock.savings_api.model.SavingsByPeriod;
-import com.himaja.blackrock.savings_api.model.Transaction;
+import com.himaja.blackrock.savings_api.model.*;
+import com.himaja.blackrock.savings_api.service.ReturnsService;
 import com.himaja.blackrock.savings_api.service.RuleEngineService;
 import com.himaja.blackrock.savings_api.service.TransactionService;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +16,16 @@ public class TransactionController {
 
     private final RuleEngineService ruleEngineService;
 
-    public TransactionController(TransactionService transactionService,
-                                 RuleEngineService ruleEngineService) {
+    private final ReturnsService returnsService;
+
+    public TransactionController(
+            TransactionService transactionService,
+            RuleEngineService ruleEngineService,
+            ReturnsService returnsService) {
+
         this.transactionService = transactionService;
         this.ruleEngineService = ruleEngineService;
+        this.returnsService = returnsService;
     }
 
     @PostMapping("/parse")
@@ -37,6 +41,30 @@ public class TransactionController {
                 request.getQ(),
                 request.getP(),
                 request.getK()
+        );
+    }
+
+    @PostMapping("/returns/index")
+    public List<SavingsByPeriod> indexReturns(
+            @RequestBody ReturnsRequest request) {
+
+        return returnsService.calculateIndexReturns(
+                request.getSavings(),
+                request.getAge(),
+                request.getInflation()
+        );
+    }
+
+
+    @PostMapping("/returns/nps")
+    public List<SavingsByPeriod> npsReturns(
+            @RequestBody ReturnsRequest request) {
+
+        return returnsService.calculateNpsReturns(
+                request.getSavings(),
+                request.getAge(),
+                request.getInflation(),
+                request.getWage()
         );
     }
 }
