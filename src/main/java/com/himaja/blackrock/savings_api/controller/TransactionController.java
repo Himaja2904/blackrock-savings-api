@@ -2,6 +2,7 @@ package com.himaja.blackrock.savings_api.controller;
 
 import com.himaja.blackrock.savings_api.model.Expense;
 import com.himaja.blackrock.savings_api.model.FilterRequest;
+import com.himaja.blackrock.savings_api.model.SavingsByPeriod;
 import com.himaja.blackrock.savings_api.model.Transaction;
 import com.himaja.blackrock.savings_api.service.RuleEngineService;
 import com.himaja.blackrock.savings_api.service.TransactionService;
@@ -29,7 +30,7 @@ public class TransactionController {
     }
 
     @PostMapping("/filter")
-    public Object filter(@RequestBody FilterRequest request) {
+    public List<SavingsByPeriod> filter(@RequestBody FilterRequest request) {
 
         return ruleEngineService.applyRules(
                 request.getTransactions(),

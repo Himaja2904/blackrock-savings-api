@@ -3,39 +3,41 @@ package com.himaja.blackrock.savings_api.service;
 import com.himaja.blackrock.savings_api.model.*;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class RuleEngineService {
 
-    public Map<KPeriod, Double> applyRules(
+    public List<SavingsByPeriod> applyRules(
             List<Transaction> transactions,
             List<QPeriod> qPeriods,
             List<PPeriod> pPeriods,
             List<KPeriod> kPeriods) {
 
-        // Step 1: Apply q override
+        // 1. Apply Q rules (override)
         for (Transaction tx : transactions) {
 
-            QPeriod chosen = null;
+            QPeriod selected = null;
 
             for (QPeriod q : qPeriods) {
                 if (tx.getTimestamp() >= q.getStart()
                         && tx.getTimestamp() <= q.getEnd()) {
 
-                    if (chosen == null ||
-                            q.getStart() > chosen.getStart()) {
-                        chosen = q;
+                    // Pick the one with latest start
+                    if (selected == null ||
+                            q.getStart() > selected.getStart()) {
+                        selected = q;
                     }
                 }
             }
 
-            if (chosen != null) {
-                tx.setRemanent(chosen.getFixed());
+            if (selected != null) {
+                tx.setRemanent(selected.getFixed());
             }
         }
 
-        // Step 2: Apply p additions
+        // 2. Apply P rules (add extras)
         for (Transaction tx : transactions) {
 
             double extra = 0;
@@ -50,8 +52,8 @@ public class RuleEngineService {
             tx.setRemanent(tx.getRemanent() + extra);
         }
 
-        // Step 3: Group by k
-        Map<KPeriod, Double> result = new HashMap<>();
+        // 3. Group by K periods
+        List<SavingsByPeriod> result = new ArrayList<>();
 
         for (KPeriod k : kPeriods) {
 
@@ -64,7 +66,11 @@ public class RuleEngineService {
                 }
             }
 
-            result.put(k, sum);
+            result.add(new SavingsByPeriod(
+                    k.getStart(),
+                    k.getEnd(),
+                    sum
+            ));
         }
 
         return result;
